@@ -3,7 +3,7 @@ import numpy as np
 import yaml
 
 def stereo_rectification_calibrated():
-    with open("./calibration_params.yaml", 'r') as file:
+    with open("./rectification/calibration_params.yaml", 'r') as file:
         #load the parameters form the yaml file created with matlab
         data = yaml.load(file)
         

@@ -1,9 +1,9 @@
 import cv2
 import numpy as np
 import time
-from gstreamer.gstreamer_base_code import __gstreamer_pipeline,
-from stereo_rectification_calibrated import stereo_rectification_calibrated
-from vpi_depth_map import vpi_stereo
+from gstreamer.gstreamer_base_code import __gstreamer_pipeline
+from rectification.stereo_rectification_calibrated import stereo_rectification_calibrated
+from depth_map.vpi_depth_map import vpi_stereo
 import matplotlib.pyplot as plt
 print(cv2.__version__)
 

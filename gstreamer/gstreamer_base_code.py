@@ -3,7 +3,7 @@ print(cv2.__version__)
 
 def __gstreamer_pipeline(
         camera_id,
-        sensor_mode=4,          #4 = 3856x2180 and 90fps; 3 = 3856 x 2180 FR = 29.999999 fps; 2 = 1928 x 1090 FR = 59.999999 fps;
+        sensor_mode=2,          #4 = 3856x2180 and 90fps; 3 = 3856 x 2180 FR = 29.999999 fps; 2 = 1928 x 1090 FR = 59.999999 fps;
         capture_width=3856,
         capture_height=2180,
         display_width=1920,
