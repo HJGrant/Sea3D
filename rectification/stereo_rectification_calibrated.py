@@ -5,7 +5,7 @@ import yaml
 def stereo_rectification_calibrated():
     with open("./rectification/calibration_params.yaml", 'r') as file:
         #load the parameters form the yaml file created with matlab
-        data = yaml.load(file)
+        data = yaml.safe_load(file)
         
         #read the left camera matrix
         leftCameraMatrix = np.asarray(data['cameraMatrixLeft'])

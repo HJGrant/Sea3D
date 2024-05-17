@@ -34,11 +34,11 @@ while True:
     with vpi.Backend.CUDA:   #or CUDA
         with streamLeft:
             ret1, frame1 = cam1.read()
-            frame1 = cv2.remap(frame1, maps_left_cam[0], maps_left_cam[1], cv2.INTER_LANCZOS4)
-            left = vpi.asimage(np.asarray(frame1)).convert(vpi.Format.Y16_ER, scale=scale)
+            #frame1 = cv2.remap(frame1, maps_left_cam[0], maps_left_cam[1], cv2.INTER_LANCZOS4)
+            left = vpi.asimage(np.asarray(frame1)).remap().convert(vpi.Format.Y16_ER, scale=scale)
         with streamRight:
             ret2, frame2 = cam2.read()
-            frame2 = cv2.remap(frame2, maps_right_cam[0], maps_right_cam[1], cv2.INTER_LANCZOS4)
+            #frame2 = cv2.remap(frame2, maps_right_cam[0], maps_right_cam[1], cv2.INTER_LANCZOS4)
             right = vpi.asimage(np.asarray(frame2)).convert(vpi.Format.Y16_ER, scale=scale)
 
     #convert to block-linear becuase needed for OFA
