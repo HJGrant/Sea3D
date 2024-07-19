@@ -3,6 +3,7 @@ import numpy as np
 from gstreamer.gstreamer_base_code import __gstreamer_pipeline
 from rectification.stereo_rectification_calibrated import stereo_rectification_calibrated
 import vpi
+import time
 
 #TODO: VPI STAGE 1: INITIALIZATION
 #data (e.g. numpy areas) need to be wrapped in a VPI image, which can then be used for further processing
@@ -37,6 +38,8 @@ numPasses=3
 scale=1
 downscale=1
 
+
+
 #initialise 2 streams for reading and preprocessing of frames
 streamLeft = vpi.Stream()
 streamRight = vpi.Stream()
@@ -46,13 +49,13 @@ streamRight = vpi.Stream()
 #while True:
 with vpi.Backend.CUDA:   #or CUDA
     with streamLeft:
-        img_left = cv2.imread("left_image_0.png")
+        img_left = cv2.imread("left_image_12.png")
         #ret1, frame1 = cam1.read()
         img_left = cv2.remap(img_left, maps_left_cam[0], maps_left_cam[1], cv2.INTER_LANCZOS4)
         left = vpi.asimage(np.asarray(img_left)).convert(vpi.Format.Y16_ER, scale=scale)
     with streamRight:
         #ret2, frame2 = cam2.read()
-        img_right = cv2.imread("right_image_0.png")
+        img_right = cv2.imread("right_image_12.png")
         img_right = cv2.remap(img_right, maps_right_cam[0], maps_right_cam[1], cv2.INTER_LANCZOS4)
         right = vpi.asimage(np.asarray(img_right)).convert(vpi.Format.Y16_ER, scale=scale)
 
@@ -70,10 +73,14 @@ outHeight = (left.size[1] + downscale - 1) // downscale
 #use left stream to consolidate actual stereo processing
 streamStereo = streamLeft
 
+start_time = time.time()
+
 #estimate stereo disparity
 with streamStereo, vpi.Backend.OFA:
     disparityS16 = vpi.stereodisp(left_1, right_1, window=block_size, maxdisp=maxDisparity, mindisp=min_disp, 
                                    quality=quality, uniqueness=uniquenessRatio, includediagonals=False, numpasses=numPasses, p1=p1, p2=p2)
+
+print("--- %s seconds ---" % (time.time() - start_time))
 
 #TODO: VPI STAGE 3: CLEANUP
 #must convert to pitch-linear if block-linear format
