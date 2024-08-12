@@ -18,8 +18,8 @@
 
 ### Images ###
 # JPEG
-*.jpg
-*.jpeg
+#*.jpg
+#*.jpeg
 *.jpe
 *.jif
 *.jfif
@@ -48,7 +48,7 @@
 *.webp
 
 # Portable Network Graphics
-*.png
+#*.png
 
 # Animated Portable Network Graphics
 *.apng
