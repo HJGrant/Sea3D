@@ -55,13 +55,13 @@ streamRight = vpi.Stream()
 #while True:
 with vpi.Backend.CUDA:   #or CUDA
     with streamLeft:
-        frame2 = cv2.imread("frame_04950_left.png")
+        frame2 = cv2.imread("frame_07978_left.png")
         #ret1, frame1 = cam1.read()
         frame2 = cv2.remap(frame2, maps_left_cam[0], maps_left_cam[1], cv2.INTER_LANCZOS4)
         left = vpi.asimage(np.asarray(frame2)).convert(vpi.Format.Y16_ER, scale=scale)
     with streamRight:
         #ret2, frame2 = cam2.read()
-        frame1 = cv2.imread("frame_04950_right.png")
+        frame1 = cv2.imread("frame_07978_right.png")
         frame1 = cv2.remap(frame1, maps_right_cam[0], maps_right_cam[1], cv2.INTER_LANCZOS4)
         right = vpi.asimage(np.asarray(frame1)).convert(vpi.Format.Y16_ER, scale=scale)
 
@@ -112,6 +112,7 @@ with streamStereo, vpi.Backend.CUDA:
     cv2.moveWindow('DISPARITY', 100, 850)
     cv2.imwrite("disparity_map.png", disparityU8)
     cv2.imwrite("disparity_map_color.png", disparityColor)
+    cv2.imwrite('rectified_stereo.png', stereo_uncalib_w_lines)
     #cv2.imwrite("left_rectified.png", img_left)
     #cv2.imwrite("rright_rectified.png", img_right)
     
