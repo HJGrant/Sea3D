@@ -36,18 +36,36 @@ maps_left_cam, maps_right_cam, ROI1, ROI2 = stereo_rectification_calibrated()
 #wx_r = maps_right_cam_t[0]
 #wy_r = maps_right_cam_t[1]
 
+def calculate_depth(disparity_map, f, B):
+    # Avoid division by zero
+    disparity_map[disparity_map == 0] = 0.1
+    # Compute depth
+    depth_map = (f * B) / disparity_map
+    return depth_map
+
+def normalize_for_display(depth_map):
+    # Normalize depth map to 0-255 for visualization
+    min_val = np.min(depth_map)
+    max_val = np.max(depth_map)
+    norm_depth_map = 65535 * (depth_map - min_val) / (max_val - min_val)
+    return norm_depth_map.astype(np.uint16)
+
+
 def vpi_compute_disp(left_frame, right_frame, depth_path, out_path):
     maxDisparity = 255
     min_disp = 1         #original 16
-    block_size = 15           #original 8
-    uniquenessRatio = 1       #original 1
+    block_size = 26           #original 8
+    uniquenessRatio = 4       #original 1
     quality = 8
-    p1 = 40
-    p2 = 125
+    p1 = 130
+    p2 = 190
     numPasses=3
 
-    scale=0.9
+    scale=1
     downscale=0.5
+
+    f=1075.9
+    B=107.9599
 
     #initialise 2 streams for reading and preprocessing of frames
     streamLeft = vpi.Stream()
@@ -60,13 +78,15 @@ def vpi_compute_disp(left_frame, right_frame, depth_path, out_path):
         with streamLeft:
             #frame2 = cv2.imread("frame_04950_left.png")
             #ret1, frame1 = cam1.read()
-            frame2 = cv2.remap(left_frame, maps_left_cam[0], maps_left_cam[1], cv2.INTER_LANCZOS4)
-            left = vpi.asimage(np.asarray(frame2)).convert(vpi.Format.Y16_ER, scale=scale)
+            left_frame = cv2.remap(left_frame, maps_left_cam[0], maps_left_cam[1], cv2.INTER_LANCZOS4)
+            left_frame = left_frame[ROI1[1]:ROI1[3], ROI1[0]:ROI1[2]] #minus 1 to set shape to same dimensions TODO: solve this better
+            left = vpi.asimage(np.asarray(left_frame)).convert(vpi.Format.Y16_ER, scale=scale)
         with streamRight:
             #ret2, frame2 = cam2.read()
             #frame1 = cv2.imread("frame_04950_right.png")
-            frame1 = cv2.remap(right_frame, maps_right_cam[0], maps_right_cam[1], cv2.INTER_LANCZOS4)
-            right = vpi.asimage(np.asarray(frame1)).convert(vpi.Format.Y16_ER, scale=scale)
+            right_frame = cv2.remap(right_frame, maps_right_cam[0], maps_right_cam[1], cv2.INTER_LANCZOS4)
+            right_frame = right_frame[ROI1[1]:ROI1[3], ROI1[0]:ROI1[2]]
+            right = vpi.asimage(np.asarray(right_frame)).convert(vpi.Format.Y16_ER, scale=scale)
 
     #with vpi.Backend.CUDA:
     #    with streamLeft:
@@ -79,7 +99,6 @@ def vpi_compute_disp(left_frame, right_frame, depth_path, out_path):
     outWidth = (left.size[0] + downscale - 1) // downscale
     outHeight = (left.size[1] + downscale - 1) // downscale
 
-    #use left stream to consolidate actual stereo processing
     streamStereo = streamLeft
 
     #estimate stereo disparity
@@ -87,33 +106,31 @@ def vpi_compute_disp(left_frame, right_frame, depth_path, out_path):
         disparityS16 = vpi.stereodisp(left, right, window=block_size, maxdisp=maxDisparity, mindisp=min_disp, 
                                     quality=quality, uniqueness=uniquenessRatio, includediagonals=True, numpasses=numPasses, p1=p1, p2=p2)
 
-    #TODO: VPI STAGE 3: CLEANUP
-    #must convert to pitch-linear if block-linear format
     if disparityS16.format == vpi.Format.S16_BL:
                 disparityS16 = disparityS16.convert(vpi.Format.S16, backend=vpi.Backend.CUDA)
 
     with streamStereo, vpi.Backend.CUDA:
         #scale and convert disparity map
-        disparityU16 = disparityS16.convert(vpi.Format.U16, scale=255.0/(32*maxDisparity)).cpu()
-
-        #convert to color JET map
-        #disparityColor = cv2.applyColorMap(disparityU16, cv2.COLORMAP_JET)
-        
+        disparityU16 = disparityS16.convert(vpi.Format.U16, scale=65535.0 / (32 * maxDisparity)).cpu()
+     
         left = left.convert(vpi.Format.U8).cpu()
         right = right.convert(vpi.Format.U8).cpu()
 
-        side_by_side_img = np.hstack((frame2, frame1))
+        side_by_side_img = np.hstack((left_frame, right_frame))
 
         # Draw horizontal lines
         stereo_uncalib_w_lines = draw_horizontal_lines(side_by_side_img)
         
+        depth_map = calculate_depth(disparityU16, f, B)
+
+        normalized_depth_map = normalize_for_display(depth_map)
 
         #cv2.imshow('STEREO', stereo_uncalib_w_lines)
         #cv2.imshow('DISPARITY', disparityU8)
         #cv2.moveWindow('LEFT FRAME UDIST', 100, 250)
         #cv2.moveWindow('RIGHT FRAME UDIST', 1100, 250)
         #cv2.moveWindow('DISPARITY', 100, 850)
-        cv2.imwrite(depth_path, disparityU16)
+        cv2.imwrite(depth_path, normalized_depth_map)
         cv2.imwrite(out_path, left_frame)
         #cv2.imwrite("disparity_map_color.png", disparityColor)
         cv2.imwrite('rectified_stereo.png', stereo_uncalib_w_lines)
@@ -131,10 +148,10 @@ def vpi_compute_disp(left_frame, right_frame, depth_path, out_path):
 
 if __name__ == "__main__":
     # Paths to the folders containing the stereo images
-    left_folder = 'data/images/left'
-    right_folder = 'data/images/right'
-    depth_folder = 'data/images/depth'
-    out_img_folder = 'data/images/out_img'
+    left_folder = '/media/seaclear/639f8c93-fac2-4b84-a4fe-b261541674e9/lab_tests/lab_test_2808/28-08-2024_16_15_06/left'
+    right_folder = '/media/seaclear/639f8c93-fac2-4b84-a4fe-b261541674e9/lab_tests/lab_test_2808/28-08-2024_16_15_06/right'
+    depth_folder = '/media/seaclear/639f8c93-fac2-4b84-a4fe-b261541674e9/lab_tests/lab_test_2808/28-08-2024_16_15_06/depth_vpi'
+    out_img_folder = '/media/seaclear/639f8c93-fac2-4b84-a4fe-b261541674e9/lab_tests/lab_test_2808/28-08-2024_16_15_06/color'
 
     # List all files in the left and right folders
     left_images = sorted(os.listdir(left_folder))

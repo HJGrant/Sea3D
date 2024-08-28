@@ -24,8 +24,8 @@ def display_stereo_images(side_by_side_img):
 #get rectification maps
 maps_left_cam, maps_right_cam, ROI1, ROI2 = stereo_rectification_calibrated()
 
-frame1 = cv2.imread("frame_04950_left.png", cv2.IMREAD_GRAYSCALE)
-frame2 = cv2.imread("frame_04950_right.png", cv2.IMREAD_GRAYSCALE)
+frame1 = cv2.imread("16:15:45_left.jpg", cv2.IMREAD_GRAYSCALE)
+frame2 = cv2.imread("16:15:45_right.jpg", cv2.IMREAD_GRAYSCALE)
 
 #h1, w1 = frame1.shape
 #h2, w2 = frame2.shape
