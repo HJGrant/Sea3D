@@ -1,0 +1,44 @@
+%YAML:1.0
+---
+cameraMatrixLeft: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [ 1080.77, 0., 933.344, 0.,
+           1075.12, 529.319, 0., 0., 1. ]
+distCoeffsLeft: !!opencv-matrix
+   rows: 1
+   cols: 8
+   dt: d
+   data: [-11.543   ,   40.6325    ,  -0.00280018  ,-0.00224853 , -15.6361  ,   -11.5271  ,   40.4738   ,   -15.1799 ]
+cameraMatrixRight: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [ 1097.06, 0., 933.117, 0.,
+           1091.83, 524.643, 0., 0., 1. ]
+distCoeffsRight: !!opencv-matrix
+   rows: 1
+   cols: 8
+   dt: d
+   data: [4.33146   ,   -31.0753   ,  -0.00134654 , -0.00187133, 37.0119   ,   4.36388   ,   -31.2128  ,   37.1581 ]
+R: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [0.999987   ,  0.00503836  , -0.000961826, -0.00504554 , 0.999958  ,   -0.00761754 , 0.000923406 , 0.0076223  ,  0.999971]
+T: !!opencv-matrix
+   rows: 3
+   cols: 1
+   dt: d
+   data: [-109.553, 0.120845, -8.62735]
+E: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]
+F: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]
