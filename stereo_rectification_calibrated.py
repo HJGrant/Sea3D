@@ -3,7 +3,7 @@ import numpy as np
 
 def stereo_rectification_calibrated():
     # Read the intrinsic parameters from YAML file
-    fs = cv2.FileStorage("calibration_params_1009.yml", cv2.FILE_STORAGE_READ)
+    fs = cv2.FileStorage("calibration_params_1209.yml", cv2.FILE_STORAGE_READ)
     calibParams = {
         'cameraMatrixLeft': fs.getNode("cameraMatrixLeft").mat(),
         'distCoeffsLeft': fs.getNode("distCoeffsLeft").mat(),

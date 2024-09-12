@@ -31,13 +31,13 @@ def normalize_for_display(depth_map):
 
 def vpi_pipeline(left_frame, right_frame):
     maxDisparity = 255
-    min_disp = 1         #original 16
-    block_size = 32           #original 8
+    min_disp = 16         #original 16
+    block_size = 12           #original 8
     uniquenessRatio = 0.98       #original 1
     quality = 8
     p1 = 130
-    p2 = 210
-    p2alpha = 1
+    p2 = 220
+    p2alpha = 4
     numPasses=3
 
     scale=1
@@ -71,8 +71,7 @@ def vpi_pipeline(left_frame, right_frame):
     with streamStereo, vpi.Backend.CUDA:
         disparityS16 = vpi.stereodisp(left, right, window=block_size, maxdisp=maxDisparity, mindisp=min_disp, 
                                     quality=quality, uniqueness=uniquenessRatio, includediagonals=True, numpasses=numPasses, p1=p1, p2=p2, p2alpha=p2alpha, )
-        disparityS16 = vpi.Image.bilateral_filter(disparityS16, 7, 0.1, 2.0)
-        disparityS16 = vpi.Image.median_filter(disparityS16, (3,3))
+        
         
 
     if disparityS16.format == vpi.Format.S16_BL:
@@ -81,9 +80,6 @@ def vpi_pipeline(left_frame, right_frame):
     with streamStereo, vpi.Backend.CUDA:
         #scale and convert disparity map
         disparityU16 = disparityS16.convert(vpi.Format.U16, scale=65535.0 / (32 * maxDisparity)).cpu()
-     
-        left = left.convert(vpi.Format.U8).cpu()
-        right = right.convert(vpi.Format.U8).cpu()
 
         side_by_side_img = np.hstack((left_frame, right_frame))
 
@@ -95,9 +91,4 @@ def vpi_pipeline(left_frame, right_frame):
         normalized_depth_map = normalize_for_display(depth_map)
 
         return normalized_depth_map, left_frame, disparityU16, stereo_uncalib_w_lines
-
-        #cv2.imwrite(depth_path, normalized_depth_map)
-        #cv2.imwrite(out_path, left_frame)
-        #cv2.imwrite(disparity_path, disparityU16)
-        #cv2.imwrite('rectified_stereo.png', stereo_uncalib_w_lines)
         
