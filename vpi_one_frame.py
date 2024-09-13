@@ -44,17 +44,18 @@ if __name__ == "__main__":
             median_filtered = resized_depth.median_filter((3, 3))  # 5x5 kernel
 
             # Apply Median Filter
-            #for i in range(3):
-            #    median_filtered = median_filtered.median_filter((3, 3))  # 5x5 kernel
+            for i in range(3):
+                median_filtered = median_filtered.median_filter((4, 4))  # 5x5 kernel
 
             # Apply Bilateral Filter
-            bilateral_filtered = median_filtered.bilateral_filter(9, 21, 11)  # Bilateral filter with kernel size 9, sigma_color 0.1, sigma_space 2.0
+            bilateral_filtered = median_filtered.bilateral_filter(9, 20, 20)  # Bilateral filter with kernel size 9, sigma_color 0.1, sigma_space 2.0
             
             for i in range(3):
-                 bilateral_filtered = bilateral_filtered.bilateral_filter(9, 21, 11)
+                 bilateral_filtered = bilateral_filtered.bilateral_filter(9, 21, 20)
 
             # Convert back to OpenCV image for saving/displaying
             result_depth = bilateral_filtered.cpu()
+            #result_depth = 6555 - result_depth
             #result_depth = bilateral_filtered.convert(vpi.Format.U16, scale=65535.0 / (32 * max_disparity)).cpu()
 
     cv2.imshow('STEREO', stereo)
@@ -87,7 +88,8 @@ if __name__ == "__main__":
 
     # depth = inverse of disparity
     #depth = 255 - disp8
-    #depth = 6555 - result_depth
+    depth = result_depth
+    h, w = result_depth.shape
 
     for v in tqdm(range(h)):
         for u in range(w):

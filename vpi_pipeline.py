@@ -30,14 +30,14 @@ def normalize_for_display(depth_map):
 
 
 def vpi_pipeline(left_frame, right_frame):
-    maxDisparity = 255
-    min_disp = 16         #original 16
-    block_size = 12           #original 8
-    uniquenessRatio = 0.98       #original 1
+    maxDisparity = 90
+    min_disp = 11         #original 16
+    block_size = 8           #original 8
+    uniquenessRatio = 0.99       #original 1
     quality = 8
     p1 = 130
     p2 = 220
-    p2alpha = 4
+    p2alpha = 8
     numPasses=3
 
     scale=1
