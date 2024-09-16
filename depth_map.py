@@ -3,15 +3,15 @@ import numpy as np
 
 
 def depth_map(img1, img2):
-    block_size = 11
-    min_disp = -128
-    max_disp = 128
+    block_size = 7
+    min_disp = -40
+    max_disp = 125
 
     num_disp = max_disp - min_disp
 
-    uniquenessRatio = 5
+    uniquenessRatio = 10
 
-    speckleWindowSize = 200
+    speckleWindowSize = 70
 
     speckleRange = 2
     disp12MaxDiff = 0
