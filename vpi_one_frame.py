@@ -21,47 +21,58 @@ def display_inlier_outlier(cloud, ind):
                                       lookat=[2.6172, 2.0475, 1.532],
                                       up=[-0.0694, -0.9768, 0.2024])
 
+def calculate_depth(disparity_map, f, B):
+    disparity_map[disparity_map == 0] = 0.1
+    depth_map = (f * B) / disparity_map
+    return depth_map
+
+
+f=1075.9
+B=107.9599
+B_meters = B / 1000
+
 if __name__ == "__main__":
 
-    left_image = cv2.imread("19_07_42.719_left.jpg")
-    right_image = cv2.imread("19_07_42.719_right.jpg")
+    left_image = cv2.imread("test_imgs/14:37:14.390_right.jpg")
+    right_image = cv2.imread("test_imgs/14:37:14.390_left.jpg")
 
-    depth_map, color, disparity, stereo = vpi_pipeline(left_image, right_image)
+    depth, color, disparity, stereo = vpi_pipeline(left_image, right_image)
 
     color = cv2.resize(color, (960, 480), interpolation=cv2.INTER_LINEAR)
+    depth = cv2.resize(depth, (960, 480), interpolation=cv2.INTER_LINEAR)
 
     postProcStream = vpi.Stream()
     with postProcStream, vpi.Backend.CUDA:
 
-            vpi_depth_map = vpi.asimage(depth_map)
+            #vpi_depth_map = vpi.asimage(depth_map)
             vpi_color = vpi.asimage(color)
             vpi_disparity = vpi.asimage(disparity)
 
             # Resize the image
-            resized_depth = vpi_depth_map.rescale((960, 480))  # Resize to half the original size
+            #resized_depth = vpi_depth_map.rescale((960, 480))  # Resize to half the original size
             resized_disparity = vpi_disparity.rescale((960, 480))
 
-            median_filtered = resized_depth.median_filter((3, 3))  # 5x5 kernel
+            #median_filtered = resized_depth.median_filter((3, 3))  # 5x5 kernel
 
             # Apply Median Filter
-            for i in range(3):
-                median_filtered = median_filtered.median_filter((4, 4))  # 5x5 kernel
+            #for i in range(3):
+            #    median_filtered = median_filtered.median_filter((4, 4))  # 5x5 kernel
 
             # Apply Bilateral Filter
-            bilateral_filtered = median_filtered.bilateral_filter(9, 20, 20)  # Bilateral filter with kernel size 9, sigma_color 0.1, sigma_space 2.0
+            #bilateral_filtered = median_filtered.bilateral_filter(9, 20, 20)  # Bilateral filter with kernel size 9, sigma_color 0.1, sigma_space 2.0
             
-            for i in range(3):
-                 bilateral_filtered = bilateral_filtered.bilateral_filter(9, 21, 20)
+            #for i in range(3):
+            #     bilateral_filtered = bilateral_filtered.bilateral_filter(9, 21, 20)
 
             # Convert back to OpenCV image for saving/displaying
-            result_depth = bilateral_filtered.cpu()
+            #result_depth = resized_depth.cpu()
             #result_depth = 6555 - result_depth
             #result_depth = bilateral_filtered.convert(vpi.Format.U16, scale=65535.0 / (32 * max_disparity)).cpu()
 
     cv2.imshow('STEREO', stereo)
     cv2.imshow('color', color)
     cv2.imshow('DISPARITY', disparity)
-    cv2.imshow("DEPTH", result_depth)
+    cv2.imshow("DEPTH", depth)
     cv2.waitKey(0)
 
 
@@ -77,19 +88,20 @@ if __name__ == "__main__":
     # ****************************** Your code here (M-4) ******************************
     # Get intrinsic parameter
     # Focal length
-    fx = 7.1760e+02
-    fy = 7.1267e+02
+    fx = 503.5825325
+    fy =  501.958523
     # Principal point
-    U0 = 4.7560e+02
-    V0 = 2.7285e+02
+    U0 = 469.031023
+    V0 = 268.1415965
+
 
     # RGB to BGR for pc_points
     imgLU = cv2.cvtColor(color, cv2.COLOR_RGB2BGR)
 
     # depth = inverse of disparity
     #depth = 255 - disp8
-    depth = result_depth
-    h, w = result_depth.shape
+    depth = depth
+    h, w = depth.shape
 
     for v in tqdm(range(h)):
         for u in range(w):
