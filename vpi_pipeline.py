@@ -25,26 +25,20 @@ def normalize_disparity(disparity_map, min_disp, max_disp):
     normalized_disp_map = 255 * (disparity_map - min_disp) / (max_disp - min_disp)
     return normalized_disp_map.astype(np.uint8)
 
-def vpi_pipeline(left_frame, right_frame):
-    max_disparity = 120
+def vpi_pipeline(left_frame, right_frame, min_depth, max_depth, f, B_meters, median=False, bilateral=False):
+    max_disparity = 245
     min_disparity = 2
-    block_size = 24
-    uniquenessRatio = 0.98
+    block_size = 7
+    uniquenessRatio = 0.99
     quality = 8
-    p1 = 130
-    p2 = 220
-    p2alpha = 8
-    numPasses=3
+    P1=175
+    P2=195
+    p2alpha = 4
+    numPasses=2
+    confthreshold=60000
 
     scale = 1
     downscale = 0.5
-
-    f = 1.0824e+03
-    B = 107.2
-    B_meters = B / 1000
-
-    min_depth = 0.1  # meters
-    max_depth = 2.5  # meters
 
     streamLeft = vpi.Stream()
     streamRight = vpi.Stream()
@@ -65,12 +59,14 @@ def vpi_pipeline(left_frame, right_frame):
     streamStereo = streamLeft
 
     with streamStereo, vpi.Backend.CUDA:
-        disparityU16 = vpi.stereodisp(right, left, window=block_size, maxdisp=max_disparity, mindisp=min_disparity, 
-                                    quality=quality, uniqueness=uniquenessRatio, includediagonals=True, numpasses=numPasses, p1=p1, p2=p2, p2alpha=p2alpha)
+        disparityU16 = vpi.stereodisp(left, right, window=block_size, maxdisp=max_disparity,confthreshold=confthreshold, mindisp=min_disparity, 
+                                    quality=quality, uniqueness=uniquenessRatio, includediagonals=True, numpasses=numPasses, p1=P1, p2=P2, p2alpha=p2alpha)
         
-        print(f"Max disparity: {np.max(disparityU16.cpu())}")
-        print(f"Min disparity: {np.min(disparityU16.cpu())}")
+        if median == True:
+            disparityU16 = disparityU16.median_filter((3, 3))
         
+        if bilateral == True:
+            disparityU16 = disparityU16.bilateral_filter(7, 0.5, 0.1)
 
     with streamStereo, vpi.Backend.CUDA:
         disparityU16 = disparityU16.cpu()
@@ -92,6 +88,9 @@ def vpi_pipeline(left_frame, right_frame):
         # Validate depth map values
         print(f"Max depth: {np.max(depth_map)}")
         print(f"Min depth: {np.min(depth_map)}")
+
+        print(f"Depth type: {depth_map.dtype}")
+        print(f"Disp type: {disparityU16.dtype}")
 
         #depth_map = normalize_disparity(depth_map, min_disparity, max_disparity)
 

@@ -18,7 +18,17 @@ def get_start_index(image_list, start_filename):
 
 if __name__ == "__main__":
     # Paths to the folders containing the stereo images
-    path = "/media/seaclear/639f8c93-fac2-4b84-a4fe-b261541674e9/lab_tests/lab_test_2908/29-08-2024_14:36:52"
+    path = "/media/seaclear/639f8c93-fac2-4b84-a4fe-b261541674e9/lab_tests/lab_test_1009/10-09-2024_19:00:23"
+
+    fx = 1103.963199
+    fy= 1096.068540
+    U0= 950.492852
+    V0= 531.100260
+    B_mm = 107.6305
+    #B_meters = B / 1000
+
+    min_depth = 100
+    max_depth = 1900
 
     # Join the base path with folder names
     left_folder = os.path.join(path, 'right')
@@ -36,7 +46,7 @@ if __name__ == "__main__":
     right_images = sorted(os.listdir(right_folder))
 
     # Define the starting filename (e.g., '000001.png')
-    start_filename = '14:37:05.671.jpg'  # Adjust this to your starting filename
+    start_filename = '19:02:23.782.jpg'  # Adjust this to your starting filename
 
     # Find the start index
     start_index = get_start_index(left_images, start_filename)
@@ -60,32 +70,14 @@ if __name__ == "__main__":
             print(f"Skipping pair {i}: Unable to load one of the images.")
             continue
         
-        depth_map, color, disparity, stereo = vpi_pipeline(left_image, right_image)
+        depth_map, color, disparity, stereo = vpi_pipeline(left_image, right_image, min_depth, max_depth, fx, B_mm, True, True)
+
+        depth_map_u16 = cv2.normalize(depth_map, None, alpha=65535, beta=0, norm_type=cv2.NORM_MINMAX)
+        depth_map_u16 = np.uint16(depth_map_u16)
+
+        disparity_map_u16 = cv2.normalize(disparity, None, alpha=65535, beta=0, norm_type=cv2.NORM_MINMAX)
+        disparity_map_u16 = np.uint16(disparity_map_u16)
         
-        color = cv2.resize(color, (960, 480), interpolation=cv2.INTER_LINEAR)
-        disparity = cv2.resize(disparity, (960, 480), interpolation=cv2.INTER_LINEAR)
-
-        postProcStream = vpi.Stream()
-        with postProcStream, vpi.Backend.CUDA:
-
-                vpi_depth_map = vpi.asimage(depth_map)
-
-                # Resize the image
-                resized_depth = vpi_depth_map.rescale((960, 480))  # Resize to half the original size
-
-                median_filtered = resized_depth.median_filter((11, 11))  # 5x5 kernel
-
-                # Apply Median Filter
-                for i in range(10):
-                    median_filtered = median_filtered.median_filter((2, 2))  # 5x5 kernel
-
-                # Apply Bilateral Filter
-                bilateral_filtered = median_filtered.bilateral_filter(9, 21, 11)  # Bilateral filter with kernel size 9, sigma_color 0.1, sigma_space 2.0
-
-                # Convert back to OpenCV image for saving/displaying
-                result_depth = bilateral_filtered.cpu()
-                #result_depth = bilateral_filtered.convert(vpi.Format.U16, scale=65535.0 / (32 * max_disparity)).cpu()
-
-        cv2.imwrite(depth_path, result_depth)
-        cv2.imwrite(disparity_out_path, disparity)
+        cv2.imwrite(depth_path, depth_map_u16)
+        cv2.imwrite(disparity_out_path, disparity_map_u16)
         cv2.imwrite(color_out_path, color)

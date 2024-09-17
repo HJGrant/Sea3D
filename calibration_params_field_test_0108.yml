@@ -1,0 +1,56 @@
+%YAML:1.0
+# In water field test
+---
+cameraMatrixLeft: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [ 1067.57, 0., 947.47, 0.,
+           1070.95, 563.679, 0., 0., 1. ]
+
+distCoeffsLeft: !!opencv-matrix
+   rows: 1
+   cols: 8
+   dt: d
+   data: [-27.4575, 146.309, 0.00818522, -0.00871536, 622.896, 
+          -27.4106, 144.829, 634.467]
+
+cameraMatrixRight: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [ 1072.27, 0., 952.9, 0.,
+           1070.78, 465.459, 0., 0., 1. ]
+
+distCoeffsRight: !!opencv-matrix
+   rows: 1
+   cols: 8
+   dt: d
+   data: [ 229.936, -4090.53, -0.0194279, 0.00283585, 17971.6,
+           228.11, -4059.36, 17836]
+
+R: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [ 0.998622, -0.0518036, 0.00837101, 
+           0.0523455, 0.994615, -0.0894488, 
+           -0.00369216, 0.0897638, 0.995956 ]
+
+T: !!opencv-matrix
+   rows: 3
+   cols: 1
+   dt: d
+   data: [-107.461, -6.14744, -1.62332]
+
+E: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]
+
+F: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]
